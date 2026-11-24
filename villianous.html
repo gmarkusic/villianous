@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Disney Villainous Randomizer</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #1a1625;
+      color: #f3e8ff;
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+    h1 { text-align: center; color: #c084fc; }
+    .section { margin-bottom: 20px; }
+    label { display: block; margin-bottom: 6px; font-weight: bold; }
+    textarea {
+      width: 100%;
+      height: 80px;
+      border-radius: 6px;
+      border: 1px solid #4c1d95;
+      background: #2e2640;
+      color: #fff;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+    .villains-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      background: #2e2640;
+      padding: 12px;
+      border-radius: 6px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background-color: #7e22ce;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:hover { background-color: #9333ea; }
+    .results {
+      margin-top: 20px;
+      background: #2e2640;
+      padding: 15px;
+      border-radius: 6px;
+    }
+    .result-item {
+      padding: 8px 0;
+      border-bottom: 1px solid #4c1d95;
+      display: flex;
+      justify-content: space-between;
+    }
+    .result-item:last-child { border-bottom: none; }
+    .villain-name { color: #e879f9; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <h1>Villainous Selector</h1>
+
+  <div class="section">
+    <label for="players">Enter Player Names (one per line):</label>
+    <textarea id="players" placeholder="Dusty&#10;Cat&#10;Linda"></textarea>
+  </div>
+
+  <div class="section">
+    <label>Available Villains (uncheck any you don't own):</label>
+    <div class="villains-grid" id="villainList"></div>
+  </div>
+
+  <button onclick="assignVillains()">Assign Villains</button>
+
+  <div class="results" id="results" style="display:none;"></div>
+
+  <script>
+    const villains = [
+      // Base Game (The Worst Takes It All)
+      "Captain Hook", "Jafar", "Maleficent", "Prince John", "Queen of Hearts", "Ursula",
+      // Wicked to the Core
+      "Dr. Facilier", "Evil Queen", "Hades",
+      // Evil Comes Prepared
+      "Ratigan", "Scar", "Yzma",
+      // Perfectly Wretched
+      "Cruella De Vil", "Mother Gothel", "Pete",
+      // Despicable Plots
+      "Gaston", "Horned King", "Lady Tremaine",
+      // Bigger and Badder
+      "Lotso", "Madam Mim", "Syndrome",
+      // Filled with Fright
+      "Oogie Boogie",
+      // Sugar and Spite
+      "King Candy", "Shere Khan",
+      // Treacherour Tides
+      "Davy Jones", "Tamatoa",
+      // Success at Any Cost
+      "Ernesto de la Cruz", "Prince Hans",
+      // Come, We Fly
+      "Sanderson Sisters"
+    ];
+
+    const listContainer = document.getElementById('villainList');
+    villains.forEach(villain => {
+      const div = document.createElement('div');
+      div.innerHTML = `<input type="checkbox" id="${villain}" value="${villain}" checked> <label for="${villain}" style="display:inline; font-weight:normal;">${villain}</label>`;
+      listContainer.appendChild(div);
+    });
+
+    function assignVillains() {
+      const playerInput = document.getElementById('players').value;
+      const players = playerInput.split('\n').map(p => p.trim()).filter(p => p !== "");
+      
+      const checkedBoxes = document.querySelectorAll('#villainList input:checked');
+      let availableVillains = Array.from(checkedBoxes).map(cb => cb.value);
+
+      const resultsDiv = document.getElementById('results');
+      resultsDiv.style.display = 'block';
+
+      if (players.length === 0) {
+        resultsDiv.innerHTML = "Please enter at least one player name.";
+        return;
+      }
+      if (players.length > availableVillains.length) {
+        resultsDiv.innerHTML = "Not enough villains selected for the number of players!";
+        return;
+      }
+
+      // Shuffle villains (Fisher-Yates)
+      for (let i = availableVillains.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [availableVillains[i], availableVillains[j]] = [availableVillains[j], availableVillains[i]];
+      }
+
+      let html = "<h3>Assignments:</h3>";
+      players.forEach((player, index) => {
+        html += `<div class="result-item"><span>${player}</span> <span class="villain-name">${availableVillains[index]}</span></div>`;
+      });
+
+      resultsDiv.innerHTML = html;
+    }
+  </script>
+
+</body>
+</html>
