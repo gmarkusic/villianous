@@ -19,7 +19,7 @@
     label { display: block; margin-bottom: 6px; font-weight: bold; }
     textarea {
       width: 100%;
-      height: 80px;
+      height: 70px;
       border-radius: 6px;
       border: 1px solid #4c1d95;
       background: #2e2640;
@@ -27,13 +27,15 @@
       padding: 10px;
       box-sizing: border-box;
     }
-    .villains-grid {
+    .checkbox-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 8px;
       background: #2e2640;
       padding: 12px;
       border-radius: 6px;
+    }
+    .villains-scroll {
       max-height: 200px;
       overflow-y: auto;
     }
@@ -70,13 +72,18 @@
   <h1>Villainous Selector</h1>
 
   <div class="section">
-    <label for="players">Enter Player Names (one per line):</label>
-    <textarea id="players" placeholder="Dusty&#10;Cat&#10;Linda"></textarea>
+    <label>Preset Players (uncheck anyone not playing):</label>
+    <div class="checkbox-grid" id="presetPlayerList"></div>
+  </div>
+
+  <div class="section">
+    <label for="extraPlayers">Additional Players (one per line):</label>
+    <textarea id="extraPlayers" placeholder="Enter any extra guests here..."></textarea>
   </div>
 
   <div class="section">
     <label>Available Villains (uncheck any you don't own):</label>
-    <div class="villains-grid" id="villainList"></div>
+    <div class="checkbox-grid villains-scroll" id="villainList"></div>
   </div>
 
   <button onclick="assignVillains()">Assign Villains</button>
@@ -84,6 +91,10 @@
   <div class="results" id="results" style="display:none;"></div>
 
   <script>
+    const presetPlayers = [
+      "Dusty", "Cat", "Nicole", "Bruno", "Linda", "George", "Eli"
+    ];
+
     const villains = [
       // Base Game (The Worst Takes It All)
       "Captain Hook", "Jafar", "Maleficent", "Prince John", "Queen of Hearts", "Ursula",
@@ -101,7 +112,7 @@
       "Oogie Boogie",
       // Sugar and Spite
       "King Candy", "Shere Khan",
-      // Treacherour Tides
+      // Treacherous Tides
       "Davy Jones", "Tamatoa",
       // Success at Any Cost
       "Ernesto de la Cruz", "Prince Hans",
@@ -109,25 +120,41 @@
       "Sanderson Sisters"
     ];
 
+    // Populate Preset Players
+    const playerContainer = document.getElementById('presetPlayerList');
+    presetPlayers.forEach(player => {
+      const div = document.createElement('div');
+      div.innerHTML = `<input type="checkbox" id="player-${player}" value="${player}" checked> <label for="player-${player}" style="display:inline; font-weight:normal;">${player}</label>`;
+      playerContainer.appendChild(div);
+    });
+
+    // Populate Villains
     const listContainer = document.getElementById('villainList');
     villains.forEach(villain => {
       const div = document.createElement('div');
-      div.innerHTML = `<input type="checkbox" id="${villain}" value="${villain}" checked> <label for="${villain}" style="display:inline; font-weight:normal;">${villain}</label>`;
+      div.innerHTML = `<input type="checkbox" id="villain-${villain}" value="${villain}" checked> <label for="villain-${villain}" style="display:inline; font-weight:normal;">${villain}</label>`;
       listContainer.appendChild(div);
     });
 
     function assignVillains() {
-      const playerInput = document.getElementById('players').value;
-      const players = playerInput.split('\n').map(p => p.trim()).filter(p => p !== "");
+      // Get checked preset players
+      const checkedPlayers = Array.from(document.querySelectorAll('#presetPlayerList input:checked')).map(cb => cb.value);
       
-      const checkedBoxes = document.querySelectorAll('#villainList input:checked');
-      let availableVillains = Array.from(checkedBoxes).map(cb => cb.value);
+      // Get additional typed players
+      const extraInput = document.getElementById('extraPlayers').value;
+      const extraPlayers = extraInput.split('\n').map(p => p.trim()).filter(p => p !== "");
+      
+      // Combine both lists
+      const players = [...checkedPlayers, ...extraPlayers];
+      
+      const checkedVillains = document.querySelectorAll('#villainList input:checked');
+      let availableVillains = Array.from(checkedVillains).map(cb => cb.value);
 
       const resultsDiv = document.getElementById('results');
       resultsDiv.style.display = 'block';
 
       if (players.length === 0) {
-        resultsDiv.innerHTML = "Please enter at least one player name.";
+        resultsDiv.innerHTML = "Please select or enter at least one player.";
         return;
       }
       if (players.length > availableVillains.length) {
